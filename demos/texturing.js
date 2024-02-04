@@ -15,7 +15,8 @@ let fragmentShader = `
     #version 300 es
     precision highp float;
     
-    uniform sampler2D tex;    
+    uniform sampler2D tex1;
+    uniform sampler2D tex2;    
     
     in vec2 v_uv;
     
@@ -23,7 +24,22 @@ let fragmentShader = `
     
     void main()
     {        
-        outColor = texture(tex, v_uv);
+        // Determine which side of the cube the fragment belongs to based on UV coordinates
+        vec2 uv = v_uv * 3.0; // Scale UV coordinates to cover [0, 3] range
+        int face = int(floor(uv.y)) * 3 + int(floor(uv.x));
+        
+        // Adjust UV coordinates for each face
+        vec2 adjustedUV = vec2(fract(uv.x), fract(uv.y));
+        
+        // Choose texture based on the side of the cube
+        vec4 color;
+        if (face == 0 || face == 2 || face == 6 || face == 8) {
+            color = texture(tex1, adjustedUV);
+        } else {
+            color = texture(tex2, adjustedUV);
+        }
+        
+        outColor = color;
     }
 `;
 
@@ -103,24 +119,32 @@ async function loadTexture(fileName) {
     return await createImageBitmap(await (await fetch("images/" + fileName)).blob());
 }
 
-const tex = await loadTexture("abstract.jpg");
+const tex1 = await loadTexture("cat.jpg");
+const tex2 = await loadTexture("cat1.jpg");
 let drawCall = app.createDrawCall(program, vertexArray)
-    .texture("tex", app.createTexture2D(tex, tex.width, tex.height, {
+    .texture("tex1", app.createTexture2D(tex1, tex1.width, tex1.height, {
         magFilter: PicoGL.LINEAR,
         minFilter: PicoGL.LINEAR_MIPMAP_LINEAR,
         maxAnisotropy: 10,
-        wrapS: PicoGL.REPEAT,
-        wrapT: PicoGL.REPEAT
+        wrapS: PicoGL.CLAMP_TO_EDGE,
+        wrapT: PicoGL.CLAMP_TO_EDGE
+    }))
+    .texture("tex2", app.createTexture2D(tex2, tex2.width, tex2.height, {
+        magFilter: PicoGL.LINEAR,
+        minFilter: PicoGL.LINEAR_MIPMAP_LINEAR,
+        maxAnisotropy: 10,
+        wrapS: PicoGL.CLAMP_TO_EDGE,
+        wrapT: PicoGL.CLAMP_TO_EDGE
     }));
 
 let skyboxDrawCall = app.createDrawCall(skyboxProgram, skyboxArray)
     .texture("cubemap", app.createCubemap({
-        negX: await loadTexture("stormydays_bk.png"),
-        posX: await loadTexture("stormydays_ft.png"),
-        negY: await loadTexture("stormydays_dn.png"),
-        posY: await loadTexture("stormydays_up.png"),
-        negZ: await loadTexture("stormydays_lf.png"),
-        posZ: await loadTexture("stormydays_rt.png")
+        negX: await loadTexture("pz.png"),
+        posX: await loadTexture("nz.png"),
+        negY: await loadTexture("ny.png"),
+        posY: await loadTexture("py.png"),
+        negZ: await loadTexture("nx.png"),
+        posZ: await loadTexture("px.png")
     }));
 
 function draw(timems) {
