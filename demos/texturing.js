@@ -24,11 +24,9 @@ let fragmentShader = `
     
     void main()
     {        
-        // Determine which side of the cube the fragment belongs to based on UV coordinates
         vec2 uv = v_uv * 3.0; // Scale UV coordinates to cover [0, 3] range
         int face = int(floor(uv.y)) * 3 + int(floor(uv.x));
         
-        // Adjust UV coordinates for each face
         vec2 adjustedUV = vec2(fract(uv.x), fract(uv.y));
         
         // Choose texture based on the side of the cube
