@@ -29,7 +29,6 @@ let fragmentShader = `
         
         vec2 adjustedUV = vec2(fract(uv.x), fract(uv.y));
         
-        // Choose texture based on the side of the cube
         vec4 color;
         if (face == 0 || face == 2 || face == 6 || face == 8) {
             color = texture(tex1, adjustedUV);
