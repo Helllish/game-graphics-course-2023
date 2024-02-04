@@ -46,7 +46,12 @@ let vertexShader = `
     
     void main()
     {
-        gl_Position = modelViewProjectionMatrix * vec4(position, 1.0);
+        float distortionFactor = sin(time * 2.0) * 0.1;
+        distortionFactor = max(0.0, distortionFactor);
+        vec3 distortedPosition = position + normal * distortionFactor;
+
+        gl_Position = modelViewProjectionMatrix * vec4(distortedPosition, 1.0);
+       
         vec3 viewNormal = (modelViewMatrix * vec4(normal, 0.0)).xyz;
         color = mix(bgColor * 0.8, fgColor, viewNormal.z) + pow(viewNormal.z, 20.0);
     }
@@ -76,8 +81,8 @@ let fragmentShader = `
 // **             Application processing               **
 // ******************************************************
 
-let bgColor = vec4.fromValues(1.0, 0.2, 0.3, 1.0);
-let fgColor = vec4.fromValues(1.0, 0.9, 0.5, 1.0);
+let bgColor = vec4.fromValues(0.41, 0.36, 0.53, 1.0);
+let fgColor = vec4.fromValues(0.26, 0.46, 0.46, 1.0);
 
 
 app.clearColor(bgColor[0], bgColor[1], bgColor[2], bgColor[3])
@@ -108,11 +113,11 @@ function draw(timems) {
     const time = timems * 0.001;
 
     mat4.perspective(projMatrix, Math.PI / 4, app.width / app.height, 0.1, 100.0);
-    mat4.lookAt(viewMatrix, vec3.fromValues(3, 0, 2), vec3.fromValues(0, 0, 0), vec3.fromValues(0, 1, 0));
+    mat4.lookAt(viewMatrix, vec3.fromValues(0, 1, 3), vec3.fromValues(0, 0, 0), vec3.fromValues(0, 1, 0));
     mat4.multiply(viewProjMatrix, projMatrix, viewMatrix);
 
-    mat4.fromXRotation(rotateXMatrix, time * 0.1136);
-    mat4.fromYRotation(rotateYMatrix, time * 0.2235);
+    mat4.fromXRotation(rotateXMatrix, time * 0.3);
+    mat4.fromYRotation(rotateYMatrix, time * 0.3);
     mat4.multiply(modelMatrix, rotateXMatrix, rotateYMatrix);
 
     mat4.multiply(modelViewMatrix, viewMatrix, modelMatrix);
