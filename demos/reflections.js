@@ -23,8 +23,8 @@ let fragmentShader = `
         vec3 reflectedDir = reflect(viewDir, normalize(vNormal));
         outColor = texture(cubemap, reflectedDir);
         
-        // Try using a higher mipmap LOD to get a rough material effect without any performance impact
-        // outColor = textureLod(cubemap, reflectedDir, 7.0);
+        float roughness = 8.0;
+        outColor = textureLod(cubemap, reflectedDir, roughness);
     }
 `;
 
@@ -72,7 +72,7 @@ let mirrorFragmentShader = `
         vec2 screenPos = gl_FragCoord.xy / screenSize;
         
         // 0.03 is a mirror distortion factor, try making a larger distortion         
-        screenPos.x += (texture(distortionMap, vUv).r - 0.5) * 0.03;
+        screenPos.x += (texture(distortionMap, vUv).r - 0.5) * 7.0;
         outColor = texture(reflectionTex, screenPos);
     }
 `;
@@ -151,7 +151,7 @@ let mirrorArray = app.createVertexArray()
     .indexBuffer(planeIndicesBuffer);
 
 // Change the reflection texture resolution to checkout the difference
-let reflectionResolutionFactor = 0.2;
+let reflectionResolutionFactor = 0.5;
 let reflectionColorTarget = app.createTexture2D(app.width * reflectionResolutionFactor, app.height * reflectionResolutionFactor, {magFilter: PicoGL.LINEAR});
 let reflectionDepthTarget = app.createTexture2D(app.width * reflectionResolutionFactor, app.height * reflectionResolutionFactor, {internalFormat: PicoGL.DEPTH_COMPONENT16});
 let reflectionBuffer = app.createFramebuffer().colorTarget(0, reflectionColorTarget).depthTarget(reflectionDepthTarget);
@@ -277,8 +277,8 @@ function draw(timems) {
     vec3.rotateY(cameraPosition, vec3.fromValues(0, 1, 3.4), vec3.fromValues(0, 0, 0), time * 0.05);
     mat4.lookAt(viewMatrix, cameraPosition, vec3.fromValues(0, -0.5, 0), vec3.fromValues(0, 1, 0));
 
-    mat4.fromXRotation(rotateXMatrix, time * 0.1136 - Math.PI / 2);
-    mat4.fromZRotation(rotateYMatrix, time * 0.2235);
+    mat4.fromXRotation(rotateXMatrix, time * 2.1136 - Math.PI / 2);
+    mat4.fromZRotation(rotateYMatrix, time * 2.2235);
     mat4.mul(modelMatrix, rotateXMatrix, rotateYMatrix);
 
     mat4.fromXRotation(rotateXMatrix, 0.3);
